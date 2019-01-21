@@ -25,7 +25,7 @@ sys.taskInit(
         setpinval()
         while true do
             if cnt == 5 then
-                conf.Restore()
+                --conf.Restore()
                 break
             end
 

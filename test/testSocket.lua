@@ -429,7 +429,7 @@ function ChannelConfig(param)
                 uid = tostring(uid),
                 usr = usr, 
                 pwd = pwd, 
-                cleanssion = tostring(cleansession), 
+                cleansession = tostring(cleansession), 
                 sub = sub, 
                 pub = pub, 
                 qos = tostring(qos), 

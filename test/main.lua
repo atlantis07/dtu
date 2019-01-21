@@ -65,10 +65,10 @@ sys.taskInit(
         else
             log.info("main", "Update Request")
 
-            --update.request()
+            update.request()
 
             --等待更新版本完成，或者60秒之后之后获取配置参数
-            --sys.waitUntil("UPDATE_FINISH", 60000)
+            sys.waitUntil("UPDATE_FINISH", 60000)
 
             log.info("main", "Conf Request")
             

@@ -177,6 +177,4 @@ function GetPassThrough(uid)
     end
 end
 
---NvmInit()
---RunAll()
---SyncPassthrough()
+
