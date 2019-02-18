@@ -54,6 +54,8 @@ require "testIO"
 
 require "mqttTask"
 
+require "dlt"
+
 sys.taskInit(
     function()
         conf.NvmInit()--获取重启之前的配置
@@ -63,6 +65,7 @@ sys.taskInit(
             conf.ConfInit()             --初始化默认配置
             conf.NvmSetConf()           --保存配置
         else
+            --[[
             log.info("main", "Update Request")
 
             update.request()
@@ -173,22 +176,18 @@ sys.taskInit(
                     end
                 end
             end
+            --]]
         end
         conf.RunAll() --启动配置项
         conf.SyncPassthrough()--同步透传标志
 
-        log.info("main", "start remote control")
+        --dlt采集文件初始化
+        dlt.dltInit()
+        
+        --开启远程控制
         sys.publish("PREINIT", "Finish")
     end
 )
-
-
-
-
---testUart.UartConfig("{\"cmd\":\"config\",\"id\":\"9\", \"baudrate\":\"115200\", \"datbits\":\"8\",\"parity\":\"2\", \"stopbits\":\"0\"}")
-
---sys.taskInit(mqttTask.MqttTask)
-
 
 --启动系统框架
 sys.init(0, 0)

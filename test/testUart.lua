@@ -9,6 +9,7 @@ require "pm"
 require "pins"
 require "conf"
 require "misc"
+require "dlt"
 
 module(..., package.seeall)
 
@@ -52,7 +53,7 @@ local function UartPreInit(uid, data)
         elseif tjsondata["cmd"] == "p" then
             socket.printStatus()
         elseif tjsondata["cmd"] == "getconf" then
-            ret = conf.GetAllConf()
+            ret = conf.GetAllConf(tjsondata["id"])
         elseif tjsondata["cmd"] == "getimei" then
             ret = misc.getImei()
         elseif tjsondata["cmd"] == "+++" then
@@ -79,6 +80,14 @@ local function taskRead(uartID)
         end
 
         local s = uart.read(uartID,"*l")
+
+        --电表参数处理
+        if dlt.GetProcFlag() == 1 then
+            if s ~= "" then
+                dlt.adddlt(s)
+            end
+        end
+
         if conf.GetPassThrough(uartID) == 0 then --非透传模式
             if s == "" then
                 sys.wait(1000)
@@ -89,27 +98,26 @@ local function taskRead(uartID)
                 s = ""
             end
         else 
-            --log.info("testUart", "Passthrough Mode")
-            if s == "" then
-                uart.on(uartID,"receive",function() sys.publish("UART_RECEIVE") end)
-                if not sys.waitUntil("UART_RECEIVE",1000) then
-                    if cacheData:sub(1,1024) ~= "" then
+                if s == "" then
+                    uart.on(uartID,"receive",function() sys.publish("UART_RECEIVE") end)
+                    if not sys.waitUntil("UART_RECEIVE",1000) then
+                        if cacheData:sub(1,1024) ~= "" then
+                            log.info("UART "..uartID.." PUBLISH")
+                            sys.publish("UART_RECV_DATA", uartID, cacheData:sub(1,1024))
+                            cacheData = cacheData:sub(1025,-1)
+                        end
+                        --cacheData = cacheData:sub(1025,-1)
+                    end
+                    uart.on(uartID,"receive")
+                else
+                    log.info("uart read", s)
+                    cacheData = cacheData..s
+                    if cacheData:len()>=1024 then
                         log.info("UART "..uartID.." PUBLISH")
                         sys.publish("UART_RECV_DATA", uartID, cacheData:sub(1,1024))
                         cacheData = cacheData:sub(1025,-1)
                     end
-                    --cacheData = cacheData:sub(1025,-1)
                 end
-                uart.on(uartID,"receive")
-            else
-                log.info("uart read", s)
-                cacheData = cacheData..s
-                if cacheData:len()>=1024 then
-                    log.info("UART "..uartID.." PUBLISH")
-                    sys.publish("UART_RECV_DATA", uartID, cacheData:sub(1,1024))
-                    cacheData = cacheData:sub(1025,-1)
-                end
-            end
         end
     end
     stopflag = 0
@@ -120,6 +128,7 @@ function UartInit(id, baudrate, datbits, parity, stopbits)
     log.info("testUart", "UART_INIT")
     pm.wake("mcuart")
     --保持系统处于唤醒状态，不会休眠
+    log.info("uart",  baudrate, datbits, parity, stopbits)
     local realbaud = uart.setup(id, baudrate, datbits, parity, stopbits, nil, 1)
     sys.taskInit(taskRead, id)
     --log.info("testUart realbaud", realbaud)
@@ -256,7 +265,7 @@ local function socketRecvData(uid, data)
         log.info("testSocket", "recv socket", uid, data)
         uart.write(2, data)
     else
-        log.info("testUart", "write", uid, "data")
+        log.info("testUart", "write", uid, "data", data:toHex())
         uart.write(uid, data)
     end
 end
@@ -264,3 +273,4 @@ end
 sys.subscribe("SOCKET_RECV_DATA",socketRecvData)
 
 
+ 

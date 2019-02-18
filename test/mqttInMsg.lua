@@ -7,6 +7,7 @@ require "testSocket"
 require "testLbsLoc"
 require "testClock"
 require "testHttp"
+require "dlt"
 
 require "tabletostr"
 
@@ -55,13 +56,22 @@ function proc(result, data)
                         break
                     elseif tjsondata["cmd"] == "getconf" then
                         --log.info("Get Imei", misc.getImei())
-                        ret = conf.GetAllConf()
+                        ret = conf.GetAllConf(tjsondata["id"])
                         break
                     elseif tjsondata["cmd"] == "getimei" then
                         ret = misc.getImei()
                         break
                     elseif tjsondata["cmd"] == "+++" then
                         conf.Restore()
+                        break
+                    elseif tjsondata["cmd"] == "getdlt" then
+                        sys.publish("DLT", data.payload)
+                        res, data = sys.waitUntil("DLT_RET", 5000)
+                        if data ~= "" then
+                            ret = data
+                        end
+                        --log.info("dlt", "ret", data)
+                        --dlt.procdata(data.payload)
                         break
                     end
                 else

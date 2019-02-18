@@ -73,14 +73,19 @@ function GetConf(id)
     return NvmGetConf(id)
 end
 
-function GetAllConf()
+function GetAllConf(id)
     local t = nvm.get(cf)
     local ret = ""
-    for i=1,9,1 do
-        ret = ret .. t[i] .. " "
+    id = tonumber(id)
+    if id == nil then
+        ret = "id not found"
+    elseif id >= 0 and id <= 9 then
+        ret = t[id]
+    else
+        ret = "id invalid"
     end
     return  ret
-end
+end 
 
 function RunAll()
     local t = nvm.get(cf)
