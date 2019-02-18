@@ -163,7 +163,7 @@ local function DLT_com_handle(par)
     retbuf = json.encode(retbuf)
     sys.publish("DLT_RET", retbuf)
     retbuf = {}
-    cnt = 0
+    --cnt = 0
     COM_flag = 0;
 end
 
@@ -234,6 +234,7 @@ function procdata()
 
                     DLT_485_Send_com(addr, 0x13, 0, 0)
                 else
+                    log.info("dlt", "cnt", cnt)
                     for i=0,cnt-1,1 do
                         local tjsondata,result,errinfo = json.decode(derice_addr_table[i])
                         if result and type(tjsondata)=="table" then
@@ -242,7 +243,7 @@ function procdata()
                             local numdevaddr = {}
                             for i=1,6,1 do
                                 numdevaddr[i] = tonumber(string.sub(strdevaddr, 2*i-1, 2*i), 16)
-                                --log.info("dlt", numdevaddr[i], type(numdevaddr[i]))
+                                log.info("dlt", numdevaddr[i], type(numdevaddr[i]))
                             end
 
                             DLT_485_Send_com({numdevaddr[1], numdevaddr[2], numdevaddr[3], numdevaddr[4], numdevaddr[5], numdevaddr[6]}, 0x11, 0x4, cmd)
@@ -257,6 +258,7 @@ function procdata()
                 DLT_com_handle(par)
 
                 if par == "addr" then
+                    log.info("dlt", "set addr")
                     --nvm.set(cf, {})
                     nvm.set(cf, derice_addr_table)
                     nvm.flush()
